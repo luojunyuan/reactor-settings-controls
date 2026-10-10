@@ -6,7 +6,7 @@ rust-version = "1.95"
 license = "MIT OR Apache-2.0"
 description = "SettingsCard and SettingsExpander controls for windows-reactor"
 readme = "README.md"
-repository = "https://github.com/microsoft/windows-rs"
+repository = "https://github.com/luojunyuan/reactor-settings-controls"
 publish = false
 
 [package.metadata.windows-rs]
