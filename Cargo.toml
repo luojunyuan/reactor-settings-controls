@@ -1,0 +1,21 @@
+[package]
+name = "reactor-settings-controls"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+license = "MIT OR Apache-2.0"
+description = "SettingsCard and SettingsExpander controls for windows-reactor"
+readme = "README.md"
+repository = "https://github.com/microsoft/windows-rs"
+publish = false
+
+[package.metadata.windows-rs]
+revision = "b419d35fdeef30ebe697217ae4653cdfdeee278f"
+
+[features]
+default = []
+test = ["windows-reactor/test"]
+
+[dependencies]
+# Keep this path pinned to the checked out windows-rs revision used by this workspace.
+windows-reactor = { package = "windows-reactor", path = "../windows-rs/crates/libs/reactor", version = "0.100.0" }
