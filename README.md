@@ -18,8 +18,9 @@ views through `IntoSettingContent`.
 ## Dependency
 
 The dependency is a path dependency on the checked out `windows-rs` revision in
-the parent workspace. This keeps the control implementation on the same
-generated declarations and native runtime as the local Reactor checkout.
+the parent workspace. `WINDOWS_RS_REVISION` records the exact Git revision used
+by that checkout, keeping the control implementation on the same generated
+declarations and native runtime as the local Reactor source.
 
 ```toml
 [dependencies]
