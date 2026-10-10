@@ -493,6 +493,12 @@ impl SettingsCard {
         self
     }
 
+    /// Clears or sets the action icon tooltip.
+    pub fn action_icon_tooltip_optional<T: Into<Rc<str>>>(mut self, value: Option<T>) -> Self {
+        self.action_icon_tooltip = value.map(Into::into);
+        self
+    }
+
     /// Sets the setting content.
     pub fn content(mut self, value: impl IntoSettingContent) -> Self {
         self.content = Some(value.into_setting_content());
@@ -739,6 +745,7 @@ pub struct SettingsExpander {
     items_header: Option<SettingContent>,
     items_footer: Option<SettingContent>,
     items: Vec<KeyedView>,
+    virtual_items: Option<VirtualSource>,
     is_expanded: bool,
     is_enabled: bool,
     horizontal_content_alignment: HorizontalAlignment,
@@ -761,6 +768,7 @@ impl SettingsExpander {
             items_header: None,
             items_footer: None,
             items: Vec::new(),
+            virtual_items: None,
             is_expanded: false,
             is_enabled: true,
             horizontal_content_alignment: HorizontalAlignment::Stretch,
@@ -849,6 +857,7 @@ impl SettingsExpander {
 
     /// Adds eagerly declared items using positional keys.
     pub fn items(mut self, values: impl IntoViews) -> Self {
+        self.virtual_items = None;
         self.items = values
             .into_visuals()
             .into_iter()
@@ -860,19 +869,25 @@ impl SettingsExpander {
 
     /// Adds items with stable application supplied keys.
     pub fn keyed_items(mut self, values: impl IntoIterator<Item = KeyedView>) -> Self {
+        self.virtual_items = None;
         self.items = values.into_iter().collect();
         self
     }
 
     /// Adds one keyed item.
     pub fn item(mut self, key: impl Into<Key>, value: impl Into<View>) -> Self {
+        self.virtual_items = None;
         self.items.push(keyed(key, value));
         self
     }
 
-    /// Uses an already materialized source as the item source.
-    pub fn items_source(self, values: impl IntoViews) -> Self {
-        self.items(values)
+    /// Uses an iterable source as the item source.
+    pub fn items_source<I>(self, values: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: Into<View>,
+    {
+        self.items_iter(values)
     }
 
     /// Adds an iterator of views, including `Vec<SettingsCard>` and other
@@ -882,6 +897,7 @@ impl SettingsExpander {
         I: IntoIterator,
         I::Item: Into<View>,
     {
+        self.virtual_items = None;
         self.items = values
             .into_iter()
             .enumerate()
@@ -906,11 +922,43 @@ impl SettingsExpander {
         F: Fn(T) -> V,
         V: Into<View>,
     {
+        self.virtual_items = None;
         self.items = values
             .into_iter()
             .enumerate()
             .map(|(index, value)| keyed(index, template(value)))
             .collect();
+        self
+    }
+
+    /// Materializes a typed source while preserving a caller supplied key for
+    /// each item. Stable keys keep item state attached when the source changes
+    /// order or inserts a row.
+    pub fn items_source_with_key<I, T, K, F, V, KeyValue>(
+        mut self,
+        values: I,
+        key: K,
+        template: F,
+    ) -> Self
+    where
+        I: IntoIterator<Item = T>,
+        K: Fn(&T) -> KeyValue,
+        KeyValue: Into<Key>,
+        F: Fn(T) -> V,
+        V: Into<View>,
+    {
+        self.virtual_items = None;
+        self.items = values
+            .into_iter()
+            .map(|value| keyed(key(&value), template(value)))
+            .collect();
+        self
+    }
+
+    /// Uses a lazily materialized Reactor source as `ItemsSource`.
+    pub fn virtual_items_source(mut self, source: VirtualSource) -> Self {
+        self.items.clear();
+        self.virtual_items = Some(source);
         self
     }
 
@@ -981,6 +1029,7 @@ impl SettingsExpander {
             items_header,
             items_footer,
             items,
+            virtual_items,
             is_expanded,
             is_enabled,
             horizontal_content_alignment,
@@ -1013,7 +1062,12 @@ impl SettingsExpander {
         if let Some(value) = items_header {
             children.push(Border::new().grid_row(0).content(value.into_view()).into());
         }
-        children.push(ItemsRepeater::new().items(items).grid_row(1).into());
+        let repeater = if let Some(source) = virtual_items {
+            ItemsRepeater::new().virtual_source(source)
+        } else {
+            ItemsRepeater::new().items(items)
+        };
+        children.push(repeater.grid_row(1).into());
         if let Some(value) = items_footer {
             children.push(Border::new().grid_row(2).content(value.into_view()).into());
         }

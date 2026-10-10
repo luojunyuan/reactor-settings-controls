@@ -1,5 +1,7 @@
 #![windows_subsystem = "windows"]
 
+use std::collections::HashMap;
+
 use reactor_settings_controls::*;
 
 #[derive(Clone, Copy)]
@@ -11,13 +13,14 @@ struct ExpandedCardInfo {
     is_expanded: bool,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 enum Message {
     Expanded(usize, bool),
+    Reordered(Vec<String>),
 }
 
 struct Sample {
-    items: [ExpandedCardInfo; 3],
+    items: Vec<ExpandedCardInfo>,
 }
 
 impl Component for Sample {
@@ -26,7 +29,7 @@ impl Component for Sample {
 
     fn create(_: &(), _: &ComponentContext<Self>) -> Self {
         Self {
-            items: [
+            items: vec![
                 ExpandedCardInfo {
                     name: "First Item",
                     info: "More about first item.",
@@ -53,19 +56,28 @@ impl Component for Sample {
     }
 
     fn update(&mut self, message: Message, _: &ComponentContext<Self>) {
-        let Message::Expanded(index, value) = message;
-        self.items[index].is_expanded = value;
+        match message {
+            Message::Expanded(index, value) => self.items[index].is_expanded = value,
+            Message::Reordered(keys) => {
+                let mut by_name: HashMap<&'static str, ExpandedCardInfo> =
+                    self.items.iter().map(|item| (item.name, *item)).collect();
+                self.items = keys
+                    .into_iter()
+                    .filter_map(|key| by_name.remove(key.as_str()))
+                    .collect();
+            }
+        }
     }
 
     fn view(&self, _: &(), context: &mut ViewContext<Self>) -> View {
         context.window_title("SettingsExpander DragHandle");
-        let rows: Vec<View> = self
+        let rows = self
             .items
             .iter()
             .enumerate()
             .map(|(index, item)| {
                 let message = context.callback(move |value| Message::Expanded(index, value));
-                Grid::new()
+                let row = Grid::new()
                     .columns([GridLength::Auto, GridLength::STAR])
                     .children((
                         Border::new()
@@ -73,6 +85,7 @@ impl Component for Sample {
                             .height(75.0)
                             .margin(Thickness::uniform(1.0))
                             .corner_radius(8.0)
+                            .background(Color::transparent())
                             .content(TextBlock::new().text("\u{283f}").font_size(20.0)),
                         SettingsExpander::new()
                             .grid_column(1)
@@ -96,11 +109,18 @@ impl Component for Sample {
                                         .expect("valid sample URI"),
                                 ),
                             ),
-                    ))
-                    .into()
+                    ));
+                DataItem::new(item.name, item.name).content(row)
             })
-            .collect();
-        StackPanel::new().children(rows).into()
+            .collect::<Vec<_>>();
+        ListView::new()
+            .selection_mode(ListViewSelectionMode::None)
+            .can_drag_items(true)
+            .can_reorder_items(true)
+            .allow_drop(true)
+            .items(rows)
+            .on_reordered(context.callback(Message::Reordered))
+            .into()
     }
 }
 

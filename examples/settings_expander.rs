@@ -2,14 +2,32 @@
 
 use reactor_settings_controls::*;
 
-struct Sample;
+struct Sample {
+    is_enabled: bool,
+    is_expanded: bool,
+}
+
+#[derive(Clone)]
+enum Message {
+    Expanded(bool),
+    Clicked,
+}
 
 impl Component for Sample {
     type Input = ();
-    type Message = ();
+    type Message = Message;
 
     fn create(_: &(), _: &ComponentContext<Self>) -> Self {
-        Self
+        Self {
+            is_enabled: true,
+            is_expanded: false,
+        }
+    }
+
+    fn update(&mut self, message: Message, _: &ComponentContext<Self>) {
+        if let Message::Expanded(value) = message {
+            self.is_expanded = value;
+        }
     }
 
     fn view(&self, _: &(), context: &mut ViewContext<Self>) -> View {
@@ -19,8 +37,9 @@ impl Component for Sample {
             .header("SettingsExpander")
             .description("The SettingsExpander has the same properties as a Card, and you can set SettingsCard as part of the Items collection.")
             .header_icon(FontIcon::new().glyph("\u{e91b}"))
-            .is_enabled(true)
-            .is_expanded(false)
+            .is_enabled(self.is_enabled)
+            .is_expanded(self.is_expanded)
+            .on_is_expanded_changed(context.callback(Message::Expanded))
             .content(
                 ComboBox::new()
                     .selected_index(0)
@@ -34,7 +53,7 @@ impl Component for Sample {
                     .header("This item can be clicked")
                     .description("SettingsCard within an Expander can be made clickable too!")
                     .is_click_enabled(true)
-                    .on_click(context.message(())),
+                    .on_click(context.message(Message::Clicked)),
                 SettingsCard::new()
                     .content_alignment(ContentAlignment::Left)
                     .content(CheckBox::new().content("Here the ContentAlignment is set to Left. This is great for e.g. CheckBoxes or RadioButtons.")),

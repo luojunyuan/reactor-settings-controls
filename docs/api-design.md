@@ -16,7 +16,7 @@ typed declaration builder that lowers to the existing primitive declarations.
 | `IsActionIconVisible`, `ActionIconToolTip` | matching builder methods |
 | `IsExpanded` | controlled `is_expanded` value |
 | `Expanded`, `Collapsed` | `on_expanded`, `on_collapsed` |
-| `Items`, `ItemsSource`, `ItemTemplate` | `items`, `items_iter`, `items_source_with`, `item_template` |
+| `Items`, `ItemsSource`, `ItemTemplate` | `items`, `items_iter`, `items_source_with`, `items_source_with_key`, `virtual_items_source`, `item_template` |
 | `ItemsHeader`, `ItemsFooter` | matching content slots |
 | `ItemContainerStyleSelector` | card builders carry their own item layout values |
 

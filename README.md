@@ -8,7 +8,8 @@ declarative Rust builders:
   trailing action icon, arbitrary content, alignment modes, and click input.
 - `SettingsExpander` is a collapsible settings group with header content,
   `ItemsHeader`, `Items`, `ItemsFooter`, typed expansion callbacks, and keyed
-  item reconciliation.
+  item reconciliation. `items_source_with_key` preserves application identity;
+  `virtual_items_source` maps directly to Reactor's lazy `VirtualSource`.
 
 The crate follows the `windows-reactor` model: every control is a pure builder
 that converts into a `View`, and callbacks are typed Reactor callbacks. Strings

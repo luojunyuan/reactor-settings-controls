@@ -80,7 +80,9 @@ impl Component for Sample {
                 ),
             HyperlinkButton::new().content("Send feedback").margin(Thickness::new(0.0, 8.0, 0.0, 0.0)),
         ));
-        ScrollViewer::new().content(stack).into()
+        ScrollViewer::new()
+            .content(Grid::new().children((stack,)))
+            .into()
     }
 }
 
