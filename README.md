@@ -18,15 +18,15 @@ views through `IntoSettingContent`.
 
 ## Dependency
 
-The dependency is a path dependency on the checked out `windows-rs` revision in
-the parent workspace. `WINDOWS_RS_REVISION` records the exact Git revision used
-by that checkout, keeping the control implementation on the same generated
-declarations and native runtime as the local Reactor source.
+The dependency is pinned to the upstream `windows-rs` Git repository at the
+exact revision recorded in `WINDOWS_RS_REVISION`. This keeps the control
+implementation on a reproducible set of generated declarations and native
+runtime APIs without relying on a local checkout.
 
 ```toml
 [dependencies]
 reactor-settings-controls = { path = "../reactor-settings-controls" }
-windows-reactor = { path = "../windows-rs/crates/libs/reactor" }
+windows-reactor = { git = "https://github.com/microsoft/windows-rs.git", rev = "d5b6a1f68f4fdd0c79495954d162901ea90da4f4" }
 ```
 
 ## Example

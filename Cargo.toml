@@ -10,12 +10,13 @@ repository = "https://github.com/luojunyuan/reactor-settings-controls"
 publish = false
 
 [package.metadata.windows-rs]
-revision = "b419d35fdeef30ebe697217ae4653cdfdeee278f"
+repository = "https://github.com/microsoft/windows-rs.git"
+revision = "d5b6a1f68f4fdd0c79495954d162901ea90da4f4"
 
 [features]
 default = []
 test = ["windows-reactor/test"]
 
 [dependencies]
-# Keep this path pinned to the checked out windows-rs revision used by this workspace.
-windows-reactor = { package = "windows-reactor", path = "../windows-rs/crates/libs/reactor", version = "0.100.0" }
+# Keep the Reactor API pinned to one reproducible upstream windows-rs revision.
+windows-reactor = { package = "windows-reactor", git = "https://github.com/microsoft/windows-rs.git", rev = "d5b6a1f68f4fdd0c79495954d162901ea90da4f4", version = "0.100.0" }
